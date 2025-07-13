@@ -4,7 +4,7 @@ package email
 // Version information
 const (
 	// Version is the current version of the go-email package
-	Version = "v1.0.2"
+	Version = "v1.0.3"
 
 	// VersionMajor is the major version number
 	VersionMajor = 1
@@ -13,7 +13,7 @@ const (
 	VersionMinor = 0
 
 	// VersionPatch is the patch version number
-	VersionPatch = 2
+	VersionPatch = 3
 
 	// VersionPreRelease is the pre-release version identifier
 	VersionPreRelease = ""
