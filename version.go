@@ -7,7 +7,7 @@ const (
 	Version = "v1.0.2"
 
 	// VersionMajor is the major version number
-	VersionMajor = 2
+	VersionMajor = 1
 
 	// VersionMinor is the minor version number
 	VersionMinor = 0
