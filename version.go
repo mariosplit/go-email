@@ -7,13 +7,13 @@ const (
 	Version = "v1.0.2"
 
 	// VersionMajor is the major version number
-	VersionMajor = 1
+	VersionMajor = 2
 
 	// VersionMinor is the minor version number
 	VersionMinor = 0
 
 	// VersionPatch is the patch version number
-	VersionPatch = 1
+	VersionPatch = 2
 
 	// VersionPreRelease is the pre-release version identifier
 	VersionPreRelease = ""
