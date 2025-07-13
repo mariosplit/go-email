@@ -1,4 +1,4 @@
-module github.com/go-email/go-email
+module github.com/mariosplit/go-email
 
 go 1.21
 
