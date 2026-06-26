@@ -113,6 +113,13 @@ type OutlookConfig struct {
 
 	// ClientSecret is the Azure AD application client secret
 	ClientSecret string
+
+	// UserID is the mailbox (user principal name or object id) that the read
+	// and management operations of MailboxProvider act on, e.g.
+	// "info@deltalegal.com.au". It is not required for sending — Send keys off
+	// the message's From address — but the mailbox operations (List, Read,
+	// Move, ...) need a concrete target and return an error if it is empty.
+	UserID string
 }
 
 // GmailConfig holds Gmail specific configuration for OAuth2 authentication.
@@ -123,6 +130,14 @@ type GmailConfig struct {
 	// TokenJSON contains the stored OAuth2 token.
 	// If not provided, authentication will be required on first use.
 	TokenJSON []byte
+
+	// Scopes overrides the OAuth2 scopes requested. If empty, the provider
+	// requests gmail.send + gmail.modify, which covers sending plus the
+	// MailboxProvider read/move/label/trash operations. Add
+	// gmail.MailGoogleComScope (full access) here if you need permanent
+	// deletion. Widening scopes requires re-running the consent flow and
+	// replacing the stored token.
+	Scopes []string
 }
 
 // Client is the main email client that wraps a provider implementation.

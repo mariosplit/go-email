@@ -20,13 +20,35 @@ import (
 type gmailProvider struct {
 	service *gmail.Service
 	config  *GmailConfig
+
+	// labelCache maps label display name -> label id, lazily populated.
+	// Gmail's Modify endpoint takes label ids, not names.
+	labelCache map[string]string
+}
+
+// gmailScopes returns the OAuth scopes to request for a Gmail provider.
+// By default it requests send + modify, which covers send plus all of the
+// MailboxProvider read/move/label/trash operations. If config.Scopes is set,
+// those are used verbatim instead.
+//
+// IMPORTANT: widening scopes invalidates a previously stored token. A token
+// minted for gmail.send alone will return 403 insufficientPermissions on the
+// read/modify endpoints; the OAuth consent flow must be re-run (with offline
+// access) and the cached token replaced. Permanent deletion additionally
+// requires gmail.MailGoogleComScope (full access) — add it to config.Scopes
+// only if you need Delete(permanent=true).
+func gmailScopes(config *GmailConfig) []string {
+	if len(config.Scopes) > 0 {
+		return config.Scopes
+	}
+	return []string{gmail.GmailSendScope, gmail.GmailModifyScope}
 }
 
 // newGmailProvider creates a new Gmail email provider.
 // It requires OAuth2 credentials and a token for authentication.
 //
-// Required Google OAuth2 scopes:
-//   - https://www.googleapis.com/auth/gmail.send
+// Required Google OAuth2 scopes (default): gmail.send + gmail.modify. See
+// gmailScopes for the re-consent caveat when widening scopes.
 //
 // The credentials should be OAuth2 credentials for a desktop application
 // created in Google Cloud Console. The token can be obtained using the
@@ -35,7 +57,7 @@ func newGmailProvider(config *GmailConfig) (Provider, error) {
 	ctx := context.Background()
 
 	// Parse OAuth2 config from credentials
-	oauthConfig, err := google.ConfigFromJSON(config.CredentialsJSON, gmail.GmailSendScope)
+	oauthConfig, err := google.ConfigFromJSON(config.CredentialsJSON, gmailScopes(config)...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse credentials: %w", err)
 	}

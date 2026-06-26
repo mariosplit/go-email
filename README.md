@@ -11,6 +11,7 @@ A simple, provider-agnostic Go package for sending emails through Outlook 365 an
 
 - **Simple, intuitive API** - Send emails with just a few lines of code
 - **Multiple Providers** - Support for Outlook 365 (Microsoft Graph) and Gmail (Gmail API)
+- **Read & manage mailboxes** - List, read, search, move, label, flag, delete, and download attachments (v1.1.0+)
 - **Rich Email Features** - HTML content, attachments, CC/BCC recipients
 - **Secure Authentication** - OAuth2 authentication for both providers
 - **Environment Configuration** - Easy setup via environment variables
@@ -227,6 +228,57 @@ if err != nil {
     }
 }
 ```
+
+## 📥 Reading & Managing Mail (v1.1.0+)
+
+Beyond sending, the same `Client` can list, read, search, move, label, flag,
+delete, and download attachments. These operations are additive — send-only
+code is unaffected. Both Outlook 365 and Gmail implement them.
+
+```go
+client, _ := email.NewClient(&email.Config{
+    Provider: "outlook365",
+    Outlook: &email.OutlookConfig{
+        TenantID: "...", ClientID: "...", ClientSecret: "...",
+        UserID:   "info@deltalegal.com.au", // mailbox to read (required for read ops)
+    },
+})
+
+// List the 20 most recent unread messages in the inbox.
+msgs, _ := client.List(email.ListOptions{UnreadOnly: true, Limit: 20})
+for _, m := range msgs {
+    fmt.Printf("%s  %s  (%s)\n", m.Received.Format("2006-01-02"), m.Subject, m.From)
+}
+
+// Read one message's body.
+full, _ := client.Read(msgs[0].ID)
+fmt.Println(full.BodyText)
+
+// Provider-native search (Graph $search KQL / Gmail operators).
+hits, _ := client.Search(`subject:invoice hasAttachments:true`, email.ListOptions{Limit: 50})
+
+// Download attachments, move to a folder, mark read, categorise.
+client.SaveAttachments(msgs[0].ID, "/path/to/matter")
+client.Move(msgs[0].ID, "archive")          // Outlook folder name / Gmail label
+client.MarkRead(msgs[0].ID, true)
+client.SetLabels(msgs[0].ID, []string{"WOO-402"})
+```
+
+**Provider differences (handled for you):**
+
+| | Outlook 365 | Gmail |
+|---|---|---|
+| Folders | real folders (`inbox`, `sentitems`, `archive`, …) | labels (`Move` = add label + remove `INBOX`) |
+| `SetLabels` | message categories | labels (created on demand) |
+| `Delete(permanent: true)` | unsupported (use `false` → Deleted Items) | requires `gmail.MailGoogleComScope` |
+| Auth scope for reads | app perm `Mail.ReadWrite` | `gmail.modify` (**re-consent required** if token was `gmail.send`-only) |
+
+> **Gmail re-consent:** v1.1.0 requests `gmail.send` + `gmail.modify` by default.
+> A token previously minted for `gmail.send` alone must be re-authorised (re-run
+> the auth helper) or read/modify calls return 403. Override with
+> `GmailConfig.Scopes`.
+
+A provider that does not support these operations returns `email.ErrUnsupported`.
 
 ## 🏗️ Architecture
 

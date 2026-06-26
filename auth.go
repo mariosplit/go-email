@@ -17,6 +17,21 @@ import (
 type GmailAuthHelper struct {
 	// CredentialsJSON contains the OAuth2 client credentials from Google Cloud Console
 	CredentialsJSON []byte
+
+	// Scopes overrides the OAuth2 scopes requested during the consent flow.
+	// If empty, the helper requests gmail.send + gmail.modify so the resulting
+	// token works for both sending and the MailboxProvider read/move/label
+	// operations. Set this (e.g. add gmail.MailGoogleComScope) before calling
+	// Authenticate to widen or narrow the grant.
+	Scopes []string
+}
+
+// authScopes returns the scopes to request, defaulting to send + modify.
+func (g *GmailAuthHelper) authScopes() []string {
+	if len(g.Scopes) > 0 {
+		return g.Scopes
+	}
+	return []string{gmail.GmailSendScope, gmail.GmailModifyScope}
 }
 
 // NewGmailAuthHelper creates a new Gmail authentication helper with the provided credentials.
@@ -55,7 +70,7 @@ func NewGmailAuthHelper(credentialsJSON []byte) *GmailAuthHelper {
 //	// Save token for future use
 //	err = os.WriteFile("token.json", token, 0600)
 func (g *GmailAuthHelper) Authenticate() ([]byte, error) {
-	config, err := google.ConfigFromJSON(g.CredentialsJSON, gmail.GmailSendScope)
+	config, err := google.ConfigFromJSON(g.CredentialsJSON, g.authScopes()...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse client secret file to config: %w", err)
 	}
@@ -76,7 +91,9 @@ func (g *GmailAuthHelper) Authenticate() ([]byte, error) {
 // getTokenFromWeb uses the OAuth2 flow to get a token from the web.
 // It prints the auth URL to stdout and waits for the user to enter the authorization code.
 func (g *GmailAuthHelper) getTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	// AccessTypeOffline requests a refresh token; ApprovalForce forces the
+	// consent screen so a refresh token is re-issued when scopes widen.
+	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	fmt.Printf("Go to the following link in your browser:\n%v\n\n", authURL)
 	fmt.Print("Enter the authorization code: ")
 
