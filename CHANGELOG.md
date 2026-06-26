@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-26
+
+### Added
+- `…WithContext` variants for the remaining mailbox operations so every
+  `Client` method can honour a caller-supplied context (previously these used
+  an internal default timeout only): `ListAttachmentsWithContext`,
+  `MarkReadWithContext`, `SetLabelsWithContext`, `DeleteWithContext`,
+  `ListFoldersWithContext`. The default-timeout forms are unchanged.
+
 ## [1.1.0] - 2026-06-26
 
 ### Added

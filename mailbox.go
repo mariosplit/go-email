@@ -255,6 +255,11 @@ func (c *Client) MoveWithContext(ctx context.Context, id, dest string) error {
 func (c *Client) ListAttachments(id string) ([]AttachmentMeta, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
+	return c.ListAttachmentsWithContext(ctx, id)
+}
+
+// ListAttachmentsWithContext is ListAttachments with a caller-supplied context.
+func (c *Client) ListAttachmentsWithContext(ctx context.Context, id string) ([]AttachmentMeta, error) {
 	mp, err := c.mailbox()
 	if err != nil {
 		return nil, err
@@ -283,6 +288,11 @@ func (c *Client) SaveAttachmentsWithContext(ctx context.Context, id, destDir str
 func (c *Client) MarkRead(id string, read bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
+	return c.MarkReadWithContext(ctx, id, read)
+}
+
+// MarkReadWithContext is MarkRead with a caller-supplied context.
+func (c *Client) MarkReadWithContext(ctx context.Context, id string, read bool) error {
 	mp, err := c.mailbox()
 	if err != nil {
 		return err
@@ -294,6 +304,11 @@ func (c *Client) MarkRead(id string, read bool) error {
 func (c *Client) SetLabels(id string, labels []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
+	return c.SetLabelsWithContext(ctx, id, labels)
+}
+
+// SetLabelsWithContext is SetLabels with a caller-supplied context.
+func (c *Client) SetLabelsWithContext(ctx context.Context, id string, labels []string) error {
 	mp, err := c.mailbox()
 	if err != nil {
 		return err
@@ -306,6 +321,11 @@ func (c *Client) SetLabels(id string, labels []string) error {
 func (c *Client) Delete(id string, permanent bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
+	return c.DeleteWithContext(ctx, id, permanent)
+}
+
+// DeleteWithContext is Delete with a caller-supplied context.
+func (c *Client) DeleteWithContext(ctx context.Context, id string, permanent bool) error {
 	mp, err := c.mailbox()
 	if err != nil {
 		return err
@@ -318,6 +338,11 @@ func (c *Client) Delete(id string, permanent bool) error {
 func (c *Client) ListFolders() ([]Folder, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
+	return c.ListFoldersWithContext(ctx)
+}
+
+// ListFoldersWithContext is ListFolders with a caller-supplied context.
+func (c *Client) ListFoldersWithContext(ctx context.Context) ([]Folder, error) {
 	mp, err := c.mailbox()
 	if err != nil {
 		return nil, err
