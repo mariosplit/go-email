@@ -135,10 +135,10 @@ func htmlExample() {
 	attachmentContent := []byte("This is a test attachment content.")
 
 	msg := &email.Message{
-		From: "newsletter@company.com",
-		To:   []string{"subscriber@example.com"},
-		Cc:   []string{"manager@example.com"},
-		Bcc:  []string{"archive@example.com"},
+		From:    "newsletter@company.com",
+		To:      []string{"subscriber@example.com"},
+		Cc:      []string{"manager@example.com"},
+		Bcc:     []string{"archive@example.com"},
 		Subject: "Monthly Newsletter",
 		Body: `
 			<html>
