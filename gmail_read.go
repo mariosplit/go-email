@@ -17,7 +17,6 @@ import (
 	"mime"
 	"net/mail"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -195,9 +194,12 @@ func (g *gmailProvider) SaveAttachments(ctx context.Context, id, destDir string)
 			walkErr = err
 			return
 		}
-		out := filepath.Join(destDir, filepath.Base(p.Filename))
-		if err := os.WriteFile(out, data, 0o600); err != nil {
-			walkErr = fmt.Errorf("gmail save attachment %q: %w", out, err)
+		// Collision-safe, OneDrive-style auto-numbering (shared with Outlook).
+		// Two messages with same-named attachments (scan.pdf, IMG_0001.jpg) must
+		// not clobber each other on a re-run; see writeUniqueAttachment.
+		out, err := writeUniqueAttachment(destDir, p.Filename, data, 0o600)
+		if err != nil {
+			walkErr = fmt.Errorf("gmail save attachment %q: %w", p.Filename, err)
 			return
 		}
 		saved = append(saved, out)
