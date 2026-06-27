@@ -225,13 +225,65 @@ func (o *outlookProvider) SaveAttachments(ctx context.Context, id, destDir strin
 		if name == "" {
 			name = derefStr(fa.GetId())
 		}
-		out := filepath.Join(destDir, filepath.Base(name))
-		if err := os.WriteFile(out, fa.GetContentBytes(), 0o600); err != nil {
-			return saved, fmt.Errorf("outlook save attachment %q: %w", out, err)
+		out, err := writeUniqueAttachment(destDir, name, fa.GetContentBytes(), 0o600)
+		if err != nil {
+			return saved, fmt.Errorf("outlook save attachment %q: %w", name, err)
 		}
 		saved = append(saved, out)
 	}
 	return saved, nil
+}
+
+// maxAttachmentCollisions caps the OneDrive-style auto-numbering search so a
+// pathological directory (or a races-with-another-writer scenario) can never
+// spin forever. 4096 distinct collisions for one filename in one destDir is far
+// beyond anything a real mailbox produces.
+const maxAttachmentCollisions = 4096
+
+// writeUniqueAttachment writes data into destDir under a collision-free name
+// derived from the attachment's filename, and returns the path actually written.
+//
+// It never overwrites an existing file. If destDir/<name> is free it is used
+// unchanged; otherwise the numeric suffix " (2)", " (3)", ... is inserted before
+// the extension (OneDrive style): "invoice.pdf" -> "invoice (2).pdf",
+// "README" -> "README (2)". The extension boundary is filepath.Ext's, so dotted
+// names like "archive.tar.gz" number as "archive.tar (2).gz".
+//
+// The create is atomic: each candidate is opened with O_CREATE|O_EXCL, so the
+// existence check and the create are a single syscall. This closes the TOCTOU
+// window between "does it exist?" and "write it" — including the same-process
+// repeats dl triggers when it re-runs triage. On EEXIST we advance to the next
+// number and retry; any other open error is returned.
+func writeUniqueAttachment(destDir, name string, data []byte, perm os.FileMode) (string, error) {
+	base := filepath.Base(name)
+	ext := filepath.Ext(base)
+	stem := base[:len(base)-len(ext)]
+
+	for i := 1; i <= maxAttachmentCollisions; i++ {
+		candidate := base
+		if i > 1 {
+			candidate = fmt.Sprintf("%s (%d)%s", stem, i, ext)
+		}
+		out := filepath.Join(destDir, candidate)
+
+		f, err := os.OpenFile(out, os.O_CREATE|os.O_EXCL|os.O_WRONLY, perm)
+		if err != nil {
+			if os.IsExist(err) {
+				continue // taken — try the next number
+			}
+			return "", err
+		}
+		if _, werr := f.Write(data); werr != nil {
+			f.Close()
+			return "", werr
+		}
+		if cerr := f.Close(); cerr != nil {
+			return "", cerr
+		}
+		return out, nil
+	}
+	return "", fmt.Errorf("could not find a free name for %q in %q after %d attempts",
+		base, destDir, maxAttachmentCollisions)
 }
 
 // MarkRead sets a message's read state.
