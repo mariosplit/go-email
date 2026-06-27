@@ -12,6 +12,7 @@ A simple, provider-agnostic Go package for sending emails through Outlook 365 an
 - **Simple, intuitive API** - Send emails with just a few lines of code
 - **Multiple Providers** - Support for Outlook 365 (Microsoft Graph) and Gmail (Gmail API)
 - **Read & manage mailboxes** - List, read, search, move, label, flag, delete, and download attachments (v1.1.0+)
+- **Calendar** - List, read, create, update, and delete Outlook calendar events (v1.3.0+, Outlook only)
 - **Rich Email Features** - HTML content, attachments, CC/BCC recipients
 - **Secure Authentication** - OAuth2 authentication for both providers
 - **Environment Configuration** - Easy setup via environment variables
