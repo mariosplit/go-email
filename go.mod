@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
+	github.com/microsoft/kiota-abstractions-go v1.8.1
 	github.com/microsoftgraph/msgraph-sdk-go v1.59.0
 	golang.org/x/oauth2 v0.16.0
 	google.golang.org/api v0.156.0
@@ -28,7 +29,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/microsoft/kiota-abstractions-go v1.8.1 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.1.0 // indirect
 	github.com/microsoft/kiota-http-go v1.4.4 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.0.0 // indirect

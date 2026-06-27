@@ -24,6 +24,12 @@ import (
 	gmail "google.golang.org/api/gmail/v1"
 )
 
+// Gmail system label ids used in move/flag logic.
+const (
+	labelInbox  = "INBOX"
+	labelUnread = "UNREAD"
+)
+
 // gmailSystemLabels are the well-known system label ids whose id == name.
 var gmailSystemLabels = map[string]bool{
 	"INBOX": true, "SENT": true, "DRAFT": true, "TRASH": true, "SPAM": true,
@@ -36,7 +42,7 @@ var gmailSystemLabels = map[string]bool{
 func (g *gmailProvider) List(ctx context.Context, opts ListOptions) ([]Summary, error) {
 	label := opts.Folder
 	if label == "" {
-		label = "INBOX"
+		label = labelInbox
 	}
 	labelID, err := g.resolveLabelID(ctx, label)
 	if err != nil {
@@ -140,7 +146,7 @@ func (g *gmailProvider) Move(ctx context.Context, id, dest string) error {
 	}
 	req := &gmail.ModifyMessageRequest{
 		AddLabelIds:    []string{destID},
-		RemoveLabelIds: []string{"INBOX"},
+		RemoveLabelIds: []string{labelInbox},
 	}
 	if _, err := g.service.Users.Messages.Modify("me", id, req).Context(ctx).Do(); err != nil {
 		return fmt.Errorf("gmail move %s -> %s: %w", id, dest, err)
@@ -175,7 +181,7 @@ func (g *gmailProvider) SaveAttachments(ctx context.Context, id, destDir string)
 	if err != nil {
 		return nil, fmt.Errorf("gmail attachments %s: %w", id, err)
 	}
-	if err := os.MkdirAll(destDir, 0o755); err != nil {
+	if err := os.MkdirAll(destDir, 0o750); err != nil {
 		return nil, fmt.Errorf("gmail save attachments: mkdir %q: %w", destDir, err)
 	}
 	var saved []string
@@ -190,7 +196,7 @@ func (g *gmailProvider) SaveAttachments(ctx context.Context, id, destDir string)
 			return
 		}
 		out := filepath.Join(destDir, filepath.Base(p.Filename))
-		if err := os.WriteFile(out, data, 0o644); err != nil {
+		if err := os.WriteFile(out, data, 0o600); err != nil {
 			walkErr = fmt.Errorf("gmail save attachment %q: %w", out, err)
 			return
 		}
@@ -220,9 +226,9 @@ func (g *gmailProvider) attachmentData(ctx context.Context, msgID string, p *gma
 func (g *gmailProvider) MarkRead(ctx context.Context, id string, read bool) error {
 	req := &gmail.ModifyMessageRequest{}
 	if read {
-		req.RemoveLabelIds = []string{"UNREAD"}
+		req.RemoveLabelIds = []string{labelUnread}
 	} else {
-		req.AddLabelIds = []string{"UNREAD"}
+		req.AddLabelIds = []string{labelUnread}
 	}
 	if _, err := g.service.Users.Messages.Modify("me", id, req).Context(ctx).Do(); err != nil {
 		return fmt.Errorf("gmail markread %s: %w", id, err)
@@ -390,7 +396,7 @@ func gmailSummary(m *gmail.Message) Summary {
 	}
 	for _, lid := range m.LabelIds {
 		switch lid {
-		case "UNREAD":
+		case labelUnread:
 			s.Unread = true
 		default:
 			s.Labels = append(s.Labels, lid)

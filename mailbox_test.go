@@ -177,7 +177,7 @@ func TestDecodeMIMEHeader(t *testing.T) {
 func TestGmailSystemLabelsMapping(t *testing.T) {
 	for _, l := range []string{"INBOX", "SENT", "UNREAD", "TRASH"} {
 		if !gmailSystemLabels[l] {
-			t.Errorf("expected %q to be a recognised system label", l)
+			t.Errorf("expected %q to be a recognized system label", l)
 		}
 	}
 	if gmailSystemLabels["Clients/WOO-402"] {

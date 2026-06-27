@@ -212,7 +212,7 @@ func (o *outlookProvider) SaveAttachments(ctx context.Context, id, destDir strin
 	if err != nil {
 		return nil, fmt.Errorf("outlook attachments %s/%s: %w", uid, id, err)
 	}
-	if err := os.MkdirAll(destDir, 0o755); err != nil {
+	if err := os.MkdirAll(destDir, 0o750); err != nil {
 		return nil, fmt.Errorf("outlook save attachments: mkdir %q: %w", destDir, err)
 	}
 	var saved []string
@@ -226,7 +226,7 @@ func (o *outlookProvider) SaveAttachments(ctx context.Context, id, destDir strin
 			name = derefStr(fa.GetId())
 		}
 		out := filepath.Join(destDir, filepath.Base(name))
-		if err := os.WriteFile(out, fa.GetContentBytes(), 0o644); err != nil {
+		if err := os.WriteFile(out, fa.GetContentBytes(), 0o600); err != nil {
 			return saved, fmt.Errorf("outlook save attachment %q: %w", out, err)
 		}
 		saved = append(saved, out)
@@ -328,7 +328,11 @@ func outlookFilter(opts ListOptions) *string {
 // outlookTop maps a positive Limit to a $top page size.
 func outlookTop(opts ListOptions) *int32 {
 	if opts.Limit > 0 {
-		return i32ptr(int32(opts.Limit))
+		n := opts.Limit
+		if n > 1000 { // Graph caps page size; clamp to avoid int32 overflow
+			n = 1000
+		}
+		return i32ptr(int32(n))
 	}
 	return nil
 }

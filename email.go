@@ -166,12 +166,12 @@ func NewClient(config *Config) (*Client, error) {
 	var err error
 
 	switch config.Provider {
-	case "outlook365":
+	case ProviderOutlook365:
 		if config.Outlook == nil {
 			return nil, fmt.Errorf("outlook configuration is required")
 		}
 		provider, err = newOutlookProvider(config.Outlook)
-	case "gmail":
+	case ProviderGmail:
 		if config.Gmail == nil {
 			return nil, fmt.Errorf("gmail configuration is required")
 		}
@@ -251,13 +251,13 @@ func QuickSend(provider string, creds interface{}, from, to, subject, body strin
 	config := &Config{Provider: provider}
 
 	switch provider {
-	case "outlook365":
+	case ProviderOutlook365:
 		if outlook, ok := creds.(*OutlookConfig); ok {
 			config.Outlook = outlook
 		} else {
 			return fmt.Errorf("invalid credentials for outlook365")
 		}
-	case "gmail":
+	case ProviderGmail:
 		if gmail, ok := creds.(*GmailConfig); ok {
 			config.Gmail = gmail
 		} else {
