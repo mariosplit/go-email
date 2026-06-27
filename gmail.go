@@ -135,7 +135,7 @@ func (g *gmailProvider) createMessage(msg *Message) (*gmail.Message, error) {
 
 		// Write headers
 		for k, v := range headers {
-			message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+			fmt.Fprintf(&message, "%s: %s\r\n", k, v)
 		}
 		message.WriteString("\r\n")
 
@@ -167,7 +167,7 @@ func (g *gmailProvider) createMessage(msg *Message) (*gmail.Message, error) {
 
 		// Write headers
 		for k, v := range headers {
-			message.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+			fmt.Fprintf(&message, "%s: %s\r\n", k, v)
 		}
 		message.WriteString("\r\n")
 		message.WriteString(msg.Body)
@@ -193,9 +193,9 @@ func (g *gmailProvider) addAttachment(message *strings.Builder, att Attachment, 
 
 	// Write attachment headers
 	message.WriteString("--" + boundary + "\r\n")
-	message.WriteString(fmt.Sprintf("Content-Type: %s; name=\"%s\"\r\n", mimeType, att.Filename))
+	fmt.Fprintf(message, "Content-Type: %s; name=\"%s\"\r\n", mimeType, att.Filename)
 	message.WriteString("Content-Transfer-Encoding: base64\r\n")
-	message.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", att.Filename))
+	fmt.Fprintf(message, "Content-Disposition: attachment; filename=\"%s\"\r\n", att.Filename)
 	message.WriteString("\r\n")
 
 	// Encode content in base64

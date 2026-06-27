@@ -118,6 +118,7 @@ func (o *outlookProvider) constructMessage(msg *Message) models.Messageable {
 func (o *outlookProvider) createRecipients(addresses []string) []models.Recipientable {
 	recipients := make([]models.Recipientable, len(addresses))
 	for i, addr := range addresses {
+		addr := addr // local copy so &addr is not the loop variable's address
 		recipient := models.NewRecipient()
 		emailAddress := models.NewEmailAddress()
 		emailAddress.SetAddress(&addr)
@@ -136,8 +137,9 @@ func (o *outlookProvider) attachFiles(message models.Messageable, attachments []
 
 	msgAttachments := make([]models.Attachmentable, 0, len(attachments))
 	for _, att := range attachments {
+		filename := att.Filename // local copy; avoid &loopvar aliasing
 		attachment := models.NewFileAttachment()
-		attachment.SetName(&att.Filename)
+		attachment.SetName(&filename)
 		attachment.SetContentBytes(att.Content)
 
 		// Determine content type

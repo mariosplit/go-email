@@ -105,6 +105,7 @@ func envExample() {
 		log.Printf("Failed to create client from env: %v\n", err)
 		return
 	}
+	fmt.Printf("Created client from environment: %T\n", client)
 
 	// QuickSend example
 	err = email.QuickSend("outlook365",

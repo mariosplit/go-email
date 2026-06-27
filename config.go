@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+// Provider name constants, used as the Config.Provider value and the
+// EMAIL_PROVIDER env var.
+const (
+	ProviderOutlook365 = "outlook365"
+	ProviderGmail      = "gmail"
+)
+
 // ConfigFromEnv creates an email configuration from environment variables.
 // This is a convenient way to configure the email client without hardcoding credentials.
 //
@@ -32,7 +39,7 @@ import (
 func ConfigFromEnv() (*Config, error) {
 	provider := os.Getenv("EMAIL_PROVIDER")
 	if provider == "" {
-		provider = "outlook365" // default
+		provider = ProviderOutlook365 // default
 	}
 
 	config := &Config{
@@ -40,14 +47,14 @@ func ConfigFromEnv() (*Config, error) {
 	}
 
 	switch provider {
-	case "outlook365":
+	case ProviderOutlook365:
 		outlook, err := outlookConfigFromEnv()
 		if err != nil {
 			return nil, fmt.Errorf("outlook config error: %w", err)
 		}
 		config.Outlook = outlook
 
-	case "gmail":
+	case ProviderGmail:
 		gmail, err := gmailConfigFromEnv()
 		if err != nil {
 			return nil, fmt.Errorf("gmail config error: %w", err)
