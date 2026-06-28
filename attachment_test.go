@@ -49,6 +49,13 @@ func TestWriteUniqueAttachment_Numbering(t *testing.T) {
 			wantBases: []string{"archive.tar.gz", "archive.tar (2).gz", "archive.tar (3).gz"},
 		},
 		{
+			// .eml is the filing path's name shape: two emails with the same
+			// subject in one matter must number, not clobber. (G2)
+			name:      "eml",
+			input:     "RE_ BAR-557 costs.eml",
+			wantBases: []string{"RE_ BAR-557 costs.eml", "RE_ BAR-557 costs (2).eml", "RE_ BAR-557 costs (3).eml"},
+		},
+		{
 			name:      "dotfile",
 			input:     ".env",
 			wantBases: []string{".env", " (2).env", " (3).env"}, // filepath.Ext(".env") == ".env"

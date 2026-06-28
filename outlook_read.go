@@ -234,6 +234,33 @@ func (o *outlookProvider) SaveAttachments(ctx context.Context, id, destDir strin
 	return saved, nil
 }
 
+// SaveMessageRaw writes the message's raw RFC822 MIME (.eml) into destDir. The
+// raw bytes come from the Graph message $value endpoint (...Content().Get),
+// which returns the verbatim wire form (no model unwrap, no base64) — directly
+// consumable by an .eml->PDF converter. The filename is derived from baseName
+// (subject), sanitized and suffixed ".eml" by ensureEMLSuffix, and made
+// collision-free by writeUniqueAttachment (shared with the attachment path).
+func (o *outlookProvider) SaveMessageRaw(ctx context.Context, id, destDir, baseName string) (string, error) {
+	uid, err := o.user()
+	if err != nil {
+		return "", err
+	}
+	raw, err := o.client.Users().ByUserId(uid).
+		Messages().ByMessageId(id).Content().Get(ctx, nil) // []byte RFC822 ($value)
+	if err != nil {
+		return "", fmt.Errorf("outlook save raw %s/%s: %w", uid, id, err)
+	}
+	if err := os.MkdirAll(destDir, 0o750); err != nil { // matches SaveAttachments
+		return "", fmt.Errorf("outlook save raw: mkdir %q: %w", destDir, err)
+	}
+	name := ensureEMLSuffix(baseName)
+	out, err := writeUniqueAttachment(destDir, name, raw, 0o600)
+	if err != nil {
+		return "", fmt.Errorf("outlook save raw %s/%s: %w", uid, id, err)
+	}
+	return out, nil
+}
+
 // maxAttachmentCollisions caps the OneDrive-style auto-numbering search so a
 // pathological directory (or a races-with-another-writer scenario) can never
 // spin forever. 4096 distinct collisions for one filename in one destDir is far

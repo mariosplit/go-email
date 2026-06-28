@@ -207,6 +207,15 @@ func (g *gmailProvider) SaveAttachments(ctx context.Context, id, destDir string)
 	return saved, walkErr
 }
 
+// SaveMessageRaw is not implemented for Gmail. The .eml-filing consumer (dl)
+// operates on Outlook mailboxes only; Gmail raw export (messages.get
+// format=raw, base64url -> m.Raw) can be added if a Gmail consumer ever needs
+// it. Returning ErrUnsupported keeps the compile-time MailboxProvider assertion
+// satisfied without shipping an untested code path (YAGNI).
+func (g *gmailProvider) SaveMessageRaw(ctx context.Context, id, destDir, baseName string) (string, error) {
+	return "", fmt.Errorf("gmail SaveMessageRaw: %w", ErrUnsupported)
+}
+
 // attachmentData returns a part's bytes, fetching by attachment id when the
 // data is not inlined (large attachments) and decoding inline data otherwise.
 func (g *gmailProvider) attachmentData(ctx context.Context, msgID string, p *gmail.MessagePart) ([]byte, error) {

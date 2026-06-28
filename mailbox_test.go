@@ -40,6 +40,9 @@ func (m *mockMailbox) ListAttachments(_ context.Context, _ string) ([]Attachment
 func (m *mockMailbox) SaveAttachments(_ context.Context, _, _ string) ([]string, error) {
 	return nil, m.err
 }
+func (m *mockMailbox) SaveMessageRaw(_ context.Context, _, _, _ string) (string, error) {
+	return "", m.err
+}
 func (m *mockMailbox) MarkRead(_ context.Context, _ string, _ bool) error      { return m.err }
 func (m *mockMailbox) SetLabels(_ context.Context, _ string, _ []string) error { return m.err }
 func (m *mockMailbox) Delete(_ context.Context, _ string, _ bool) error        { return m.err }

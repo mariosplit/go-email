@@ -145,6 +145,15 @@ type MailboxProvider interface {
 	// returns the paths written. destDir is created if it does not exist.
 	SaveAttachments(ctx context.Context, id, destDir string) ([]string, error)
 
+	// SaveMessageRaw writes the message's raw RFC822 MIME (.eml) into destDir
+	// under a collision-free name derived from baseName (".eml" is appended if
+	// absent; reserved/control chars in baseName are sanitized), and returns the
+	// path written. destDir is created if it does not exist. The raw MIME is the
+	// provider's verbatim wire form (Graph $value / Gmail raw), suitable for an
+	// .eml->PDF converter. Providers that cannot export raw MIME return
+	// ErrUnsupported.
+	SaveMessageRaw(ctx context.Context, id, destDir, baseName string) (string, error)
+
 	// MarkRead sets a message's read state.
 	MarkRead(ctx context.Context, id string, read bool) error
 
@@ -282,6 +291,24 @@ func (c *Client) SaveAttachmentsWithContext(ctx context.Context, id, destDir str
 		return nil, err
 	}
 	return mp.SaveAttachments(ctx, id, destDir)
+}
+
+// SaveMessageRaw writes a message's raw RFC822 MIME (.eml) into destDir under a
+// collision-free name derived from baseName, with a default timeout, and returns
+// the path written. See MailboxProvider.SaveMessageRaw.
+func (c *Client) SaveMessageRaw(id, destDir, baseName string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+	return c.SaveMessageRawWithContext(ctx, id, destDir, baseName)
+}
+
+// SaveMessageRawWithContext is SaveMessageRaw with a caller-supplied context.
+func (c *Client) SaveMessageRawWithContext(ctx context.Context, id, destDir, baseName string) (string, error) {
+	mp, err := c.mailbox()
+	if err != nil {
+		return "", err
+	}
+	return mp.SaveMessageRaw(ctx, id, destDir, baseName)
 }
 
 // MarkRead sets a message's read state, with a default timeout.
